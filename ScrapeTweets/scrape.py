@@ -1,4 +1,6 @@
 import json
+import pandas as pd
+import numpy as np
 import tweepy
 
 # Get API Keys from JSON
