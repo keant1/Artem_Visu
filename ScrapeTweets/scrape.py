@@ -8,7 +8,7 @@ def setup_api():
         api_keys = json.load(json_file)
 
     consumer_key = api_keys["API_key"]
-    consumer_secret =api_keys["API_secret_Key"]
+    consumer_secret =api_keys["API_secret_key"]
 
     try: 
         auth = tweepy.AppAuthHandler(consumer_key, consumer_secret)
@@ -19,36 +19,78 @@ def setup_api():
     
     return tweepy.API(auth)
 
+
+def image_query(query):
+    return "#{0} -is:retweet filter:images".format(query)
+
+
 def search_tweets(api, query, n_items=10):
-    result = result
-    for tweet in tweepy.Cursor(api.search, q='query').items(n_items):
-        result.append(tweet)
-        print(tweet.text)
+    '''Returns API search for query'''
+    results = api.search(query, lang='en', count=n_items)
+    return results
+
+
+def tweet_image_url(tweet):
+    """ Returns a list Image URLs in tweets or None, if image url not present"""
+
+    if 'media' in tweet.entities.keys():
+      # Filter media for media urls
+      image_urls = []
+      for i in range(len(tweet.entities["media"])):
+          image_urls.append( tweet.entities["media"][i]["media_url"])
+    else:
+      return None
+    
+    return image_urls
+
+
+def tweet_hashtags(tweet):
+    """ Returns a list of hashtags in the tweet or None if hashtag not present"""
+
+    if 'hashtags' in tweet.entities.keys():
+      # Filter entities for hashtags
+      hashtags = []
+      for i in range(len(tweet.entities["hashtags"])):
+          hashtags.append( tweet.entities["hashtags"][i]["text"])
+    else:
+      return None
+
+
+def filter_images(search_results):
+    """ Returns list of Image URLs in tweets or None, if image not present"""
+    result = []
+    for tweet in search_results:
+          result.append(tweet_image_url(tweet))
     
     return result
 
+# Iterate through hashtags
+def query_hashtags(hashtags, api, tweets_per_hashtag=5):
+    """Returns a dataframe of tweets queried in the hashtag"""
+    
+    df_rows = []
+    for tag in hashtags:
+        query  = image_query(tag)
+        tweets = search_tweets(api, query, n_items=tweets_per_hashtag)
 
-artem = setup_api()
-search_tweets(artem, "dog")
+        for tweet in tweets:
+            data = {
+                'response':  str(tweet._json),
+                'text':   tweet.text,
+                'main_tag': tag,
+                'query':  query,
+                'entities': [tweet.entities] if tweet.entities else None,
+                'image_urls': tweet_image_url(tweet),
+                'hashtags': tweet_hashtags(tweet)
+            }
+           
+            df_rows.append(
+                pd.DataFrame(data, columns=data.keys(), index=[0])
+            )
 
-# auth = tweepy.OAuthHandler(api_keys["API_key"],
-#                            api_keys["API_secret_Key"])
-# try:
-#     redirect_url = auth.get_authorization_url()
-# except tweepy.TweepError:
-#     print('Error! Failed to get request token.')
+    #df_tweets = pd.concat(df_rows, ignore_index=True)
 
-# session.set('request_token', auth.request_token['oauth_token'])
+    return pd.concat(df_rows, ignore_index=True)
 
-
-
-# auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-# token = session.get('request_token')
-# session.delete('request_token')
-# auth.request_token = { 'oauth_token' : token,
-#                          'oauth_token_secret' : verifier }
-
-# try:
-#     auth.get_access_token(verifier)
-# except tweepy.TweepError:
-#     print('Error! Failed to get access token.')
+if __name__ == "main":
+    df_artem = query_hashtags(hashtags, artem, tweets_per_hashtag=1)
