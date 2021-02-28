@@ -1,0 +1,11 @@
+art
+portraits
+digitalportrait
+illustration
+cartoon
+sketch
+architecture
+photography
+painting
+photography
+portrait
