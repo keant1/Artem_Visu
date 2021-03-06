@@ -6,7 +6,7 @@ import tweepy
 # Get API Keys from JSON
 def setup_api():
     """Returns authenticated tweepy API object"""
-    with open("../api_keys.json") as json_file:
+    with open("api_keys.json") as json_file:
         api_keys = json.load(json_file)
 
     consumer_key = api_keys["API_key"]
