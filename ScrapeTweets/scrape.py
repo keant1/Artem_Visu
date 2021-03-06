@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 import pandas as pd
 import numpy as np
 import tweepy
@@ -94,5 +95,33 @@ def query_hashtags(hashtags, api, tweets_per_hashtag=5):
 
     return pd.concat(df_rows, ignore_index=True)
 
-if __name__ == "main":
+
+def make_csv_file():
+    try:
+        timestamp = datetime.now()
+        timestampstr = timestamp.strfrtime("%d-%b-%Y (%H:%M:%S)")
+
+        return " ".join("Artem", datestampstr, ".csv")
+    except Exception as e:
+        print("Something went wrong!")
+        print(e)
+        return "Artem.csv"
+
+
+def get_hashtags():
+    pass
+
+
+if __name__ == '__main__':
+
+    artem = setup_api()
+
+    hashtags = [
+        'art','portraits','digitalportrait',
+        'illustration','cartoon','sketch','architecture',
+        'photography','painting','photography','portrait'
+    ]
+    
     df_artem = query_hashtags(hashtags, artem, tweets_per_hashtag=1)
+    print("Saving Artem CSV")
+    df_artem.to_csv(make_csv_file())
