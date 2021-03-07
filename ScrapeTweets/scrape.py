@@ -125,6 +125,21 @@ def make_df_filename(use_csv=True):
         return "runs/Artem " + end 
 
 
+def get_hashtags(filename):
+    """Returns a list of hashtags from the filename provided """
+    try:
+        f = open(filename, "r")
+
+    except:
+        print("Could not open {0} for hashtags".format(filename))
+        return None
+
+    hashtags = f.read().splitlines()
+
+    f.close()
+    return hashtags
+
+
 def download_image(url):
     """Downloads images from media urls"""
 
@@ -138,8 +153,16 @@ def download_image(url):
         header = 'Authorization: Bearer ' + api_keys["Bearer_Token"] 
         response = requests.get(url)
 
+        try:
+            url_split = url.split("/")
+            url_filename = url_split[-1]
+            temp_name = url_filename[0:-4]
+
+        except:
+            pass
+
         if response.status_code == 200:
-            print(url)
+            print("Downloading:\t", url)
             img = open("images/" + temp_name + ".jpg", "xb")
             img.write(response.content)
             img.close()
@@ -156,13 +179,9 @@ if __name__ == '__main__':
     else:
         print("Did not connect to Twitter API")
 
-    hashtags = [
-        'art','portraits','digitalportrait',
-        'illustration','cartoon','sketch','architecture',
-        'photography','painting','portrait', 
-    ]
+    hashtags = get_hashtags("hashtags.txt")
 
-    
+    print("Quering hashtags")
     df_artem = query_hashtags(hashtags, artem, tweets_per_hashtag=10)
     df_artem["urls"] = df_artem["text"].apply(regex_url)
 
