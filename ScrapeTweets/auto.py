@@ -4,11 +4,10 @@ import schedule
 import time
 
 def schedule_query(hashtags, api, max_interval_query=450):
-    """ """
-    n_queries = int(max_interval_query/len(hashtags))
+    """ Preforms query and download for each time interval"""
     
-    print("Waking up to make {0} hashtag queries".format(n_queries))
-    df_artem = query_hashtags(hashtags, artem, tweets_per_hashtag=n_queries)
+    print("Waking up to make {0} hashtag queries".format(len(hashtags)))
+    df_artem = query_hashtags(hashtags, artem, tweets_per_hashtag=85)
     df_artem["urls"] = df_artem["text"].apply(regex_url)
 
     print("Saving Artem\n\n")
@@ -17,7 +16,7 @@ def schedule_query(hashtags, api, max_interval_query=450):
     print("\n\n----\t----\tSaving images----\t----")
     for url in df_artem["image_urls"]:
         download_image(url)
-    print("----------------------------------------"
+    print("----------------------------------------")
     print("Downloads complete")
 
 
@@ -33,11 +32,15 @@ if __name__ == '__main__':
     print("Beginning scheduled runs")
 
     tags = get_hashtags("hashtags.txt")
-
-    n_mins = 1
+    
+    max_queries_per_15_mins=450
+    
+    n_sec = int( len(tags) * 30 /450  * 60)
+    
+    print("Running every {0} seconds".format(n_sec))
 
     schedule_query(tags, artem)
-    schedule.every(interval=n_mins).minutes.do( schedule_query, 
+    schedule.every(interval=n_sec).seconds.do( schedule_query, 
                                                 hashtags = tags, api = artem)
 
     while True: 

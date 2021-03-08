@@ -158,8 +158,9 @@ def download_image(url):
             url_filename = url_split[-1]
             temp_name = url_filename[0:-4]
 
-        except:
-            pass
+        except KeyboardInterrupt as e:
+            print("EXIT!")
+            quit()
 
         if response.status_code == 200:
             print("Downloading:\t", url)
@@ -167,8 +168,9 @@ def download_image(url):
             img.write(response.content)
             img.close()
     
-    except:
-        pass
+    except KeyboardInterrupt:
+        print("Exit!")
+        quit()
 
 
 if __name__ == '__main__':
