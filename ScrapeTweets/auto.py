@@ -34,14 +34,9 @@ if __name__ == '__main__':
 
     n_mins = 15
 
+    schedule_query(tags, artem)
     schedule.every(interval=n_mins).minutes.do( schedule_query, 
                                                 hashtags = tags, api = artem, frequency = n_mins)
-
-    artem = setup_api()
-    if artem != -1:
-        print("Successfully connected to Twitter!")
-    else:
-        print("Did not connect to Twitter API")
 
     while True: 
         # Checks whether a scheduled task  
