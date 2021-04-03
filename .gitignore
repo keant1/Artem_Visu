@@ -2,4 +2,4 @@ api_keys.json
 artem_visu/
 ScrapeTweets/runs/*
 ScrapeTweets/images/*
-
+__pycache__*

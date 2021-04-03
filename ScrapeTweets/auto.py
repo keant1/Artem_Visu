@@ -39,17 +39,11 @@ if __name__ == '__main__':
     
     print("Running every {0} seconds".format(n_sec))
 
-<<<<<<< HEAD
-    schedule_query(tags, artem)
-    schedule.every(interval=n_sec).seconds.do( schedule_query, 
-                                                hashtags = tags, api = artem)
-=======
     n_mins = 15
 
     schedule_query(tags, artem)
     schedule.every(interval=n_mins).minutes.do( schedule_query, 
                                                 hashtags = tags, api = artem, frequency = n_mins)
->>>>>>> style_transfer
 
     while True: 
         # Checks whether a scheduled task  
