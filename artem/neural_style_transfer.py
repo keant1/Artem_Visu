@@ -3,6 +3,7 @@ import tensorflow as tf
 # Load compressed models from tensorflow_hub
 # os.environ['TFHUB_MODEL_LOAD_FORMAT'] = 'COMPRESSED'
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
+os.environ["KERAS_BACKEND"] = "plaidml.keras.backend"
 
 import IPython.display as display
 
@@ -184,6 +185,29 @@ for name, output in sorted(results['content'].items()):
   print("    mean: ", output.numpy().mean())
 
 
+def style_content_loss(outputs):
+    style_outputs = outputs['style']
+    content_outputs = outputs['content']
+    style_loss = tf.add_n([tf.reduce_mean((style_outputs[name]-style_targets[name])**2) 
+                           for name in style_outputs.keys()])
+    style_loss *= style_weight / num_style_layers
+
+    content_loss = tf.add_n([tf.reduce_mean((content_outputs[name]-content_targets[name])**2) 
+                             for name in content_outputs.keys()])
+    content_loss *= content_weight / num_content_layers
+    loss = style_loss + content_loss
+    return loss
+
+@tf.function()
+def train_step(image):
+  with tf.GradientTape() as tape:
+    outputs = extractor(image)
+    loss = style_content_loss(outputs)
+
+  grad = tape.gradient(loss, image)
+  opt.apply_gradients([(grad, image)])
+  image.assign(clip_0_1(image))
+
 
 # Run a gradient descent
 print("Beginning gradient descent")
@@ -200,30 +224,11 @@ opt = tf.optimizers.Adam(learning_rate=0.02, beta_1=0.99, epsilon=1e-1)
 style_weight=1e-2
 content_weight=1e4
 
-def style_content_loss(outputs):
-    style_outputs = outputs['style']
-    content_outputs = outputs['content']
-    style_loss = tf.add_n([tf.reduce_mean((style_outputs[name]-style_targets[name])**2) 
-                           for name in style_outputs.keys()])
-    style_loss *= style_weight / num_style_layers
 
-    content_loss = tf.add_n([tf.reduce_mean((content_outputs[name]-content_targets[name])**2) 
-                             for name in content_outputs.keys()])
-    content_loss *= content_weight / num_content_layers
-    loss = style_loss + content_loss
-    return loss
 
 # Use tf.GradientTape to update the image.
 
-@tf.function()
-def train_step(image):
-  with tf.GradientTape() as tape:
-    outputs = extractor(image)
-    loss = style_content_loss(outputs)
 
-  grad = tape.gradient(loss, image)
-  opt.apply_gradients([(grad, image)])
-  image.assign(clip_0_1(image))
 
 # for i in range(3):
 #     train_step(image)
